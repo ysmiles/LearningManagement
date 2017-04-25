@@ -29,7 +29,7 @@ int handleStudent(int fd, const vector<student> &stu) {
     int sz;
 
     // TODO
-    vector<student(&id, &password)> stps;
+    vector<student> stps;
     loadpasswordInfo(stps);
 
     while ((sz = read(fd, buf, CMDSIZE))) {
@@ -52,6 +52,7 @@ int handleStudent(int fd, const vector<student> &stu) {
             buff = "Wrong ID format\n";
         }
         // AUTHENTCATION and send back gpa
+        // TODO
         else {
             int id = stoi(buff);
             double gpa = -1;
