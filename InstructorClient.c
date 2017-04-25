@@ -93,5 +93,7 @@ int Interact(const char *host, const char *service) {
         fflush(stdout);
     }
 
+    // here the socket has already been closed
+
     return 0;
 }
