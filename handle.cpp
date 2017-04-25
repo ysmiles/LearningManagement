@@ -1,3 +1,4 @@
+#include "student.h"
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
@@ -21,11 +22,15 @@ using namespace std;
 
 #define CMDSIZE 128
 
-
 int handleStudent(int fd, const vector<student> &stu) {
     char buf[CMDSIZE]; // enough to hold ID
+    char pass[CMDSIZE];
     bzero(buf, CMDSIZE);
     int sz;
+
+    // TODO
+    vector<student(&id, &password)> stps;
+    loadpasswordInfo(stps);
 
     while ((sz = read(fd, buf, CMDSIZE))) {
         if (sz < 0)
@@ -45,16 +50,66 @@ int handleStudent(int fd, const vector<student> &stu) {
         regex idreg("\\d+");
         if (!regex_match(buff, idreg)) {
             buff = "Wrong ID format\n";
-        } else {
+        }
+        // AUTHENTCATION and send back gpa
+        else {
             int id = stoi(buff);
             double gpa = -1;
             for (auto i = stu.begin(); i != stu.end(); ++i) {
                 if (id == i->id) {
-                    gpa = i->gpa;
-                    // break the search
+                    // if id found, break the search
+                    pass = i->password;
+                    if (pass.empty()) {
+                        // Let client enter at least 8 characters long password
+                        buff = "Setup Password:\n";
+                        write(fd, buff.c_str(), buff.size());
+                        // read passward
+                        read(fd, buf, CMDSIZE);
+
+                        // TODO
+                        strcpy(pass1, buf);
+                        string password(pass1);
+                        savepassinfo(stu);
+                    } else {
+                        // Let client enter at least 8 characters long password
+                        buff = "Enter Password:\n";
+                        write(fd, buff.c_str(), buff.size());
+                        // read passward
+                        read(fd, buf, CMDSIZE);
+
+                        // TODO
+                        strcpy(pass1, buf);
+                        string pass2(pass1);
+
+                        // Compare the passwords, if same
+                        // then ask for next command to execute.
+                        if (pass == pass2) {
+                            buff = "How can I help you?";
+                            write(fd, buff.c_str(), buff.size());
+                            read(fd, buf, CMDSIZE);
+                            gpa = i->gpa;
+                        } else {
+                            buff = "Unauthorised access";
+                            write(fd, buff.c_str(), buff.size());
+                        }
+                    }
                     break;
                 }
             }
+
+            // if it is not ID then it has to be a password
+            /* strcpy(pass1,buf);
+             string pass2(pass1);
+           if (pass==pass2)	// Compare the passwords, if same then ask for
+           next
+           command to execute.
+            {
+             buff="How can I help you?";
+            }
+           else{
+               buff="Unauthorised access";
+               }*/
+
             // modify sending message
             if (gpa == -1)
                 buff = "ID not found";
@@ -68,6 +123,7 @@ int handleStudent(int fd, const vector<student> &stu) {
         if (write(fd, buff.c_str(), buff.size()) < 0)
             errexit("Sending failed: %s\n", strerror(errno));
 
+        // clear the buffer and goto next command
         bzero(buf, CMDSIZE);
     }
     return 0;
@@ -181,7 +237,7 @@ int handleInstructor(int fd, vector<student> &stu) {
                 } else if (cmd[0] == "stat") {
                     double min = stu[0].gpa, max = min, ave = 0;
                     ss << setw(8) << "Min" << setw(8) << "Max" << setw(8)
-                       << "Aveage" << endl;
+                       << "Average" << endl;
                     for (auto i = stu.begin(); i != stu.end(); ++i) {
                         if (i->gpa < min)
                             min = i->gpa;
