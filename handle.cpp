@@ -1,4 +1,3 @@
-#include "student.h"
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
@@ -9,8 +8,8 @@
 #include <vector>
 
 #include "handle.h"
-#include "student.h"
 #include "socketstuff.h"
+#include "student.h"
 
 using namespace std;
 
