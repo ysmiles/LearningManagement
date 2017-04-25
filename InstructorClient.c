@@ -3,12 +3,9 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "connectTCP.c"
+#include "socketstuff.h"
 
-extern int errno;
 int Interact(const char *host, const char *service);
-int errexit(const char *format, ...);
-int connectTCP(const char *host, const char *service);
 
 #define BUFSIZE 1024
 

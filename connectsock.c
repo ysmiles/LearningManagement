@@ -1,4 +1,3 @@
-//#define __USE_BSD 1
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -7,7 +6,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-#include "errexit.c"
+#include "socketstuff.h"
 
 #ifndef INADDR_NONE
 #define INADDR_NONE 0xffffffff
@@ -15,8 +14,6 @@
 
 /* INADDR_NONE */
 typedef unsigned short u_short;
-extern int errno;
-int errexit(const char *format, ...);
 /*------------------------------------------------------------------------
  * * connectsock - allocate & connect a socket using TCP or UDP
  * *------------------------------------------------------------------------

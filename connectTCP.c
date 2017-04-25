@@ -1,9 +1,7 @@
-#include "connectsock.c"
-
-int connectsock(const char *host, const char *service, const char *transport);
+#include "socketstuff.h"
 
 int connectTCP(const char *host, const char *service)
-/*
+/**
  *  Arguments:
  *  host
  *  name of host to which connection is desired

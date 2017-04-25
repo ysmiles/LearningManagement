@@ -12,10 +12,11 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "passiveTCP.c"
+#include "handle.h"
+#include "socketstuff.h"
+#include "student.h"
 
 // C++ stuff here
-#include "student.h"
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -28,12 +29,6 @@ using namespace std;
 
 void reaper(int);
 int handleClient(int fd, vector<student> &stu);
-
-extern int errno;
-int errexit(const char *format, ...);
-int handleStudent(int fd, const vector<student> &sts);
-int handleInstructor(int fd, vector<student> &sts);
-int passiveTCP(const char *service, int qlen);
 
 /*------------------------------------------------------------------------
  * main - Concurrent TCP server

@@ -3,12 +3,9 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "connectTCP.c"
+#include "socketstuff.h"
 
-extern int errno;
 int TCPecho(const char *host, const char *service);
-int errexit(const char *format, ...);
-int connectTCP(const char *host, const char *service);
 
 #define BUFSIZE 128
 
@@ -77,7 +74,7 @@ int TCPecho(const char *host, const char *service) {
         }
 
         bzero(buf, BUFSIZE);
-        
+
         /* read it back */
         n = read(s, buf, BUFSIZE);
         if (n < 0)

@@ -1,9 +1,9 @@
-/* errexit.c - errexit */
-
 #include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "socketstuff.h"
 
 /*------------------------------------------------------------------------
  * errexit - print an error message and exit

@@ -5,14 +5,12 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-#include "errexit.c"
+#include "socketstuff.h"
 
-extern int errno;
-typedef unsigned short u_short;
-int errexit(const char *format, ...);
 u_short portbase = 0;
+
 /* port base, for non-root servers
- * */
+ */
 
 /*------------------------------------------------------------------------
  * * passivesock - allocate & bind a server socket using TCP or UDP

@@ -1,4 +1,3 @@
-#include "student.h"
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
@@ -7,6 +6,10 @@
 #include <sstream>
 #include <string>
 #include <vector>
+
+#include "handle.h"
+#include "student.h"
+#include "socketstuff.h"
 
 using namespace std;
 
@@ -18,8 +21,6 @@ using namespace std;
 
 #define CMDSIZE 128
 
-extern int errno;
-int errexit(const char *format, ...);
 
 int handleStudent(int fd, const vector<student> &stu) {
     char buf[CMDSIZE]; // enough to hold ID
