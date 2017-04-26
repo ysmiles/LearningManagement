@@ -137,9 +137,10 @@ int handleInstructor(int fd, vector<student> &stu) {
         if (sz < 0)
             errexit("Reading failed: %s\n", strerror(errno));
 
-        // just in case some wrong message
+        // in case of some wrong message
         buf[sz - 1] = '\0';
 
+        //  C++ string to make things easier
         string buff = buf;
 
         if (buff == "END") {
@@ -148,104 +149,40 @@ int handleInstructor(int fd, vector<student> &stu) {
             return 0;
         }
 
-        // check format first
-        regex idreg("[^\\s]+\\s?(\\d+)?\\s?(\\d+\\.?\\d*)?");
-        if (!regex_match(buff, idreg)) {
-            buff = "Wrong command, get help with command \"help\"";
-        } else {
-            // split the command
-            istringstream iss(buff);
-            vector<string> cmd{istream_iterator<string>(iss), {}};
-            cout << "Command get: " << buff << endl;
-            buff = ""; // reset buff
-            // for (auto i = cmd.begin(); i != cmd.end(); ++i) {
-            //     cout << *i << endl;
-            // }
+        // split the command
+        istringstream iss(buff);
+        vector<string> cmd{istream_iterator<string>(iss), {}};
+        cout << "Command get: " << buff << endl;
+        buff = "";        // reset buff
+        ostringstream ss; // output buffer
 
-            // change id grade
-            // register id grade
-            if (cmd.size() == 3) {
-                int id = stoi(cmd.at(1));
-                double gpa = stod(cmd.at(2));
-                // find first
-                for (auto i = stu.begin(); i != stu.end(); ++i) {
-                    if (id == i->id) {
-                        i->gpa = gpa;
-                        // for checking
-                        gpa = 0;
-                        // break the search
-                        break;
-                    }
-                }
-                ostringstream ss;
+        if (!cmd.empty()) {
+            // register id lastname firstname grade
+            if (cmd[0] == "register") {
+                // TODO SQL`
+                INSERT INTO VALUES(value1, value2, value3, ...);
                 ss << fixed << setprecision(3);
-                ss << "ID " << id; // << " Grade " << gpa;
-                if (gpa) {
-                    stu.push_back(student(id, gpa));
-                    ss << " added successful";
-                    // sort data
-                    sort(stu.begin(), stu.end());
-                    // save data to local files
-                    saveInfo(stu);
-                } else {
-                    ss << " changed successful";
-                }
-                buff = ss.str();
+                // TODO SQL`
+            }
+            // change id grade
+            else if (cmd[0] == "change") {
+                // TODO SQL`
             }
             // list id
             // del id
             else if (cmd.size() == 2) {
-                int id = stoi(cmd[1]);
-                double gpa = -1;
-                for (auto i = stu.begin(); i != stu.end(); ++i) {
-                    if (id == i->id) {
-                        gpa = i->gpa;
-                        if (cmd[0] == "del") {
-                            stu.erase(i);
-                            // save data to local files
-                            saveInfo(stu);
-                        }
-                        // break the search
-                        break;
-                    }
-                }
-                // modify sending message
-                if (gpa == -1)
-                    buff = "ID not found";
-                else {
-                    ostringstream ss;
-                    ss << fixed << setprecision(3);
-                    ss << "ID " << id << " Grade " << gpa;
-                    if (cmd[0] == "del")
-                        ss << " successfully deleted.";
-                    buff = ss.str();
-                    // buff = to_string(gpa);
-                    // buff = "GPA " + buff.substr(0, 5);
-                }
+                // TODO SQL`
             }
             // list
             // stat
             // help
             else if (cmd.size() == 1) {
-                // hold ouput buffer
-                ostringstream ss;
                 if (cmd[0] == "list") {
                     ss << "ID   Grade" << endl;
-                    for (auto i = stu.begin(); i != stu.end(); ++i) {
-                        ss << *i << endl;
-                    }
+                    // TODO SQL`
                 } else if (cmd[0] == "stat") {
-                    double min = stu[0].gpa, max = min, ave = 0;
-                    ss << setw(8) << "Min" << setw(8) << "Max" << setw(8)
-                       << "Average" << endl;
-                    for (auto i = stu.begin(); i != stu.end(); ++i) {
-                        if (i->gpa < min)
-                            min = i->gpa;
-                        else if (max < i->gpa)
-                            max = i->gpa;
-                        ave += i->gpa;
-                    }
-                    ave = ave / stu.size();
+                    // TODO SQL
+
                     ss << fixed << setprecision(3);
                     ss << setw(8) << min << setw(8) << max << setw(8) << ave
                        << endl;
@@ -269,6 +206,8 @@ int handleInstructor(int fd, vector<student> &stu) {
                 }
                 buff = ss.str();
             }
+        } else {
+            buff = "Wrong command, get help with command \"help\"";
         }
 
         // other wrong command
@@ -285,9 +224,19 @@ int handleInstructor(int fd, vector<student> &stu) {
 
         // send message
         // next time if it is too large, we can split the string before send
-        if (write(fd, buff.c_str(), buff.size()) < 0)
+        auto outlen = buff.size();
+        if ((outlen = write(fd, buff.c_str(), outlen)) < 0)
             errexit("Sending failed: %s\n", strerror(errno));
 
+        // might be splitted by system
+        while (outlen != buff.size()) {
+            buff = buff.substr(outlen);
+            outlen = buff.size();
+            if ((outlen = write(fd, buff.c_str(), outlen)) < 0)
+                errexit("Sending failed: %s\n", strerror(errno));
+        }
+
+        //  reset buf and get next command
         bzero(buf, CMDSIZE);
     }
 
