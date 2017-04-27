@@ -7,10 +7,10 @@
 #include <string>
 #include <vector>
 
+#include "dbconnector.h"
 #include "handle.h"
 #include "socketstuff.h"
 #include "student.h"
-#include "dbconnector.h"
 
 using namespace std;
 
@@ -157,36 +157,119 @@ int handleInstructor(int fd, vector<student> &stu) {
         buff = "";        // reset buff
         ostringstream ss; // output buffer
 
+        dbconnector dc;
+        string sqlcmd;
+
         if (!cmd.empty()) {
             // register id lastname firstname grade
             if (cmd[0] == "register") {
-                // TODO SQL`
-                INSERT INTO VALUES(value1, value2, value3, ...);
-                ss << fixed << setprecision(3);
-                // TODO SQL`
+                sqlcmd = "INSERT INTO students VALUE(" + cmd[1] ", '" + cmd[2] +
+                         "', '" + cmd[3] + "', " + cmd[4] + ")";
+                if (dc.exQuery(ss, sqlcmd) == 0) {
+                    ss << "Register succeed" << endl;
+                }
             }
             // change id grade
             else if (cmd[0] == "change") {
-                // TODO SQL`
+                sqlcmd = "UPDATE students SET Grade =" + cmd[2] +
+                         " WHERE StudentID = " + cmd[1];
+                if (dc.exQuery(ss, sqlcmd) == 0) {
+                    ss << "Change succeed" << endl;
+                }
             }
             // list id
             // del id
             else if (cmd.size() == 2) {
-                // TODO SQL`
+                if (cmd[0] == "list") {
+                    sqlcmd = "SELECT * FROM students WHERE StudentID = ";
+                    sqlcmd += cmd[1];
+                    if (dc.exQuery(ss, sqlcmd) == 0) {
+                        auto *res = dc.getresult();
+                        ss << setw(12) << "Student ID" << setw(12)
+                           << "Last Name" << setw(12) << "First Name"
+                           << setw(12) << "Grade" << endl;
+                        while (res->next()) {
+                            // by column
+                            for (auto i = 1; i < 4; ++i)
+                                ss << setw(12) << res->getString(i);
+                            ss << fixed << setprecision(3) << setw(12)
+                               << res->getDouble(4);
+                            ss << endl;
+                        }
+                    }
+                } else if (cmd[0] == "del") {
+                    sqlcmd = "DELETE FROM students WHERE StudentID = ";
+                    sqlcmd += cmd[1];
+                    if (dc.exQuery(ss, sqlcmd) == 0) {
+                        ss << "delete succeed" << endl;
+                    }
+                }
             }
             // list
             // stat
             // help
             else if (cmd.size() == 1) {
                 if (cmd[0] == "list") {
-                    ss << "ID   Grade" << endl;
-                    // TODO SQL`
+                    sqlcmd = "SELECT * FROM students ORDER BY StudentID ASC");
+                    if (dc.exQuery(ss, sqlcmd) == 0) {
+                        auto *res = dc.getresult();
+                        ss << setw(12) << "Student ID" << setw(12)
+                           << "Last Name" << setw(12) << "First Name"
+                           << setw(12) << "Grade" << endl;
+                        while (res->next()) {
+                            // by column
+                            for (auto i = 1; i < 4; ++i)
+                                ss << setw(12) << res->getString(i);
+                            ss << fixed << setprecision(3) << setw(12)
+                               << res->getDouble(4);
+                            ss << endl;
+                        }
+                    }
                 } else if (cmd[0] == "stat") {
-                    // TODO SQL
-
-                    ss << fixed << setprecision(3);
-                    ss << setw(8) << min << setw(8) << max << setw(8) << ave
-                       << endl;
+                    sqlcmd = "SELECT * FROM students WHERE Grade = "
+                             "(SELECT  MAX(Grade) FROM students)";
+                    ss << "Max grade student" << endl;
+                    if (dc.exQuery(ss, sqlcmd) == 0) {
+                        auto *res = dc.getresult();
+                        ss << setw(12) << "Student ID" << setw(12)
+                           << "Last Name" << setw(12) << "First Name"
+                           << setw(12) << "Grade" << endl;
+                        while (res->next()) {
+                            // by column
+                            for (auto i = 1; i < 4; ++i)
+                                ss << setw(12) << res->getString(i);
+                            ss << fixed << setprecision(3) << setw(12)
+                               << res->getDouble(4);
+                            ss << endl;
+                        }
+                    }
+                    sqlcmd = "SELECT * FROM students WHERE Grade = "
+                             "(SELECT  MIN(Grade) FROM students)";
+                    ss << "Max grade student" << endl;
+                    if (dc.exQuery(ss, sqlcmd) == 0) {
+                        auto *res = dc.getresult();
+                        ss << setw(12) << "Student ID" << setw(12)
+                           << "Last Name" << setw(12) << "First Name"
+                           << setw(12) << "Grade" << endl;
+                        while (res->next()) {
+                            // by column
+                            for (auto i = 1; i < 4; ++i)
+                                ss << setw(12) << res->getString(i);
+                            ss << fixed << setprecision(3) << setw(12)
+                               << res->getDouble(4);
+                            ss << endl;
+                        }
+                    }
+                    sqlcmd = "SELECT AVG(Grade) FROM students";
+                    ss << "Average grade" << endl;
+                    if (dc.exQuery(ss, sqlcmd) == 0) {
+                        auto *res = dc.getresult();
+                        while (res->next()) {
+                            // by column
+                            ss << fixed << setprecision(4) << res->getDouble(1);
+                            ss << endl;
+                        }
+                    }
                 } else if (cmd[0] == "help") {
                     ss << left;
                     ss << "Command examples: " << endl;

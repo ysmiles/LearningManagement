@@ -15,6 +15,8 @@ class dbconnector {
 
     int exQuery(std::ostream &os, const std::string &query);
 
+    sql::ResultSet *getresult();
+
     ~dbconnector();
 
   private:

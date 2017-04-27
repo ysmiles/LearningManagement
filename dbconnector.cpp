@@ -23,22 +23,17 @@ dbconnector::dbconnector() {
 int dbconnector::exQuery(ostream &os, const string &query) {
     try {
         res = stmt->executeQuery(query);
-        while (res->next()) {
-            os << "MySQL replies: ";
-            /* Access column data by alias or column name */
-            // os << res->getString("_message") << endl;
-            // os << "MySQL says it again: ";
-            /* Access column data by numeric offset, 1 is the first */
-            os << res->getString(1) << endl;
-        }
     } catch (sql::SQLException &e) {
         os << "# ERR: " << e.what();
         os << " (MySQL error code: " << e.getErrorCode();
         os << ", SQLState: " << e.getSQLState() << " )" << endl;
+        return -1;
     }
 
     return 0;
 }
+
+sql::ResultSet *dbconnector::getresult() { return res; }
 
 dbconnector::~dbconnector() {
     delete res;
