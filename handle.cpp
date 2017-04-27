@@ -10,6 +10,7 @@
 #include "handle.h"
 #include "socketstuff.h"
 #include "student.h"
+#include "dbconnector.h"
 
 using namespace std;
 
@@ -206,10 +207,9 @@ int handleInstructor(int fd, vector<student> &stu) {
                 }
                 buff = ss.str();
             }
-        } else {
-            buff = "Wrong command, get help with command \"help\"";
         }
 
+        // Since buff has no content
         // other wrong command
         if (buff == "") {
             buff = "Wrong command, get help with command \"help\"";
