@@ -134,6 +134,9 @@ int handleInstructor(int fd, vector<student> &stu) {
     char buf[CMDSIZE];
     bzero(buf, CMDSIZE);
     int sz;
+    dbconnector dc;
+    string sqlcmd;
+
     while ((sz = read(fd, buf, CMDSIZE))) {
         if (sz < 0)
             errexit("Reading failed: %s\n", strerror(errno));
@@ -156,9 +159,6 @@ int handleInstructor(int fd, vector<student> &stu) {
         cout << "Command get: " << buff << endl;
         buff = "";        // reset buff
         ostringstream ss; // output buffer
-
-        dbconnector dc;
-        string sqlcmd;
 
         if (!cmd.empty()) {
             // register id lastname firstname grade
