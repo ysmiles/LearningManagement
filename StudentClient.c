@@ -59,6 +59,22 @@ int TCPecho(const char *host, const char *service) {
     // first identify itself
     (void)write(s, "STU", 4);
 
+    printf("Current notification:\n");
+    // read the most recent notification
+    int sz;
+    bzero(buf, BUFSIZE);
+    while ((sz = read(s, buf, BUFSIZE))) {
+        if (sz < 0)
+            errexit("socket read failed: %s\n", strerror(errno));
+        else {
+            printf("%s", buf);
+            fflush(stdout);
+            bzero(buf, BUFSIZE);
+        }
+        if (sz < BUFSIZE)
+            break;
+    }
+
     printf("Student ID: ");
     while (fgets(buf, sizeof(buf), stdin)) {
         // insure line null-terminated
@@ -76,7 +92,6 @@ int TCPecho(const char *host, const char *service) {
         bzero(buf, BUFSIZE);
 
         /* read it back */
-        int sz;
         while ((sz = read(s, buf, BUFSIZE))) {
             if (sz < 0)
                 errexit("socket read failed: %s\n", strerror(errno));

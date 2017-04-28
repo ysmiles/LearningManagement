@@ -28,7 +28,23 @@ int handleStudent(int fd) {
     bzero(buf, CMDSIZE);
     int sz;
     dbconnector dc;
+    string sqlcmd;
+    ostringstream ss; // output buffer
+    sqlcmd = "SELECT * FROM notifications WHERE Time = "
+             "(SELECT  MAX(Time) FROM notifications)";
+    if (dc.exQuery(ss, sqlcmd) == 0) {
+        auto *res = dc.getresult();
+        while (res->next()) {
+            // by column
+            ss << res->getString(1) << endl;
+            ss << res->getString(2) << endl;
+        }
+        string buff = ss.str();
+        if (write(fd, buff.c_str(), buff.size()) < 0)
+            errexit("Sending failed: %s\n", strerror(errno));
+    }
 
+    // read ID
     while ((sz = read(fd, buf, CMDSIZE))) {
         if (sz < 0)
             errexit("Reading failed: %s\n", strerror(errno));
@@ -209,8 +225,19 @@ int handleInstructor(int fd) {
                 if (dc.exQuery(ss, sqlcmd) == 0) {
                     ss << "Change succeed" << endl;
                 }
+            } else if (cmd[0] == "notice") {
+                sqlcmd = "INSERT INTO notifications(Time, Content) "
+                         "VALUE(CURTIME(), '";
+                int sz = cmd.size();
+                for (int i = 1; i < sz; ++i) {
+                    sqlcmd += cmd[i];
+                    sqlcmd += " ";
+                }
+                sqlcmd += "')";
+                if (dc.exQuery(ss, sqlcmd) == 0) {
+                    ss << "Notice succeed" << endl;
+                }
             }
-            // list id
             // del id
             else if (cmd.size() == 2) {
                 sqlcmd = "SELECT EXISTS (SELECT * FROM students WHERE "
@@ -338,6 +365,8 @@ int handleInstructor(int fd) {
                        << "- add an id or change grade" << endl;
                     ss << setw(40) << "change [id] [grade]"
                        << "- change grade" << endl;
+                    ss << setw(40) << "notice [message]"
+                       << "- leave a notification to students." << endl;
                     ss << setw(40) << "END"
                        << "- disconnect with server" << endl;
                 }
