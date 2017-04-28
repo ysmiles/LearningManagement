@@ -9,8 +9,6 @@ class student {
   public:
     friend std::istream &operator>>(std::istream &is, student &s);
     friend std::ostream &operator<<(std::ostream &is, const student &s);
-    friend std::istream &operator>>(std::istream &is, student &s);
-    friend std::ostream &operator<<(std::ostream &is, const student &s);
     friend bool operator<(const student &s1, const student &s2);
 
     student() = default;
@@ -24,9 +22,9 @@ class student {
     std::string password;
 };
 
-int loadInfo(std::vector<student> &s);
-int saveInfo(const std::vector<student> &s);
-int loadpasswordInfo(std::vector<student> &s);
-int savepassInfo(const std::vector<student> &s);
+// int loadInfo(std::vector<student> &s);
+// int saveInfo(const std::vector<student> &s);
+// int loadpasswordInfo(std::vector<student> &s);
+// int savepassInfo(const std::vector<student> &s);
 
 #endif

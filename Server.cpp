@@ -28,7 +28,7 @@ using namespace std;
 #define BUFSIZE 2048
 
 void reaper(int);
-int handleClient(int fd, vector<student> &stu);
+int handleClient(int fd);
 
 /*------------------------------------------------------------------------
  * main - Concurrent TCP server
@@ -70,15 +70,11 @@ int main(int argc, char *argv[]) {
             errexit("accept: %s\n", strerror(errno));
         }
 
-        // load all the information into a vector
-        vector<student> sts;
-        loadInfo(sts);
-
         switch (fork()) {
         case 0:
             /* child */
             (void)close(msock);
-            exit(handleClient(ssock, sts));
+            exit(handleClient(ssock));
         default:
             /* parent */
             (void)close(ssock);
@@ -106,7 +102,7 @@ void reaper(int sig) {
  * handleClient - decide which client is connected
  *------------------------------------------------------------------------
  */
-int handleClient(int fd, vector<student> &sts) {
+int handleClient(int fd) {
     char buf[4]; // here we should get STU or INS
     int sz = read(fd, buf, BUFSIZE);
     if (sz < 0)
@@ -116,9 +112,9 @@ int handleClient(int fd, vector<student> &sts) {
     printf("Client: %s\n", buf);
 
     if (strcmp(buf, "STU") == 0)
-        return handleStudent(fd, sts);
+        return handleStudent(fd);
     else if (strcmp(buf, "INS") == 0)
-        return handleInstructor(fd, sts);
+        return handleInstructor(fd);
     else {
         printf("Wrong client: %s\n", buf);
         return -1;

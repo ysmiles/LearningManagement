@@ -18,10 +18,10 @@ int main() {
                 /* Access column data by alias or column name */
                 /* Access column data by numeric offset, 1 is the first column
                  */
-                for (auto i = 1; i < 4; ++i)
+                for (auto i = 1; i < 2; ++i)
                     cout << setw(12) << res->getString(i);
-                cout << fixed << setprecision(3) << setw(12)
-                     << res->getDouble(4);
+                // cout << fixed << setprecision(3) << setw(12)
+                    //  << res->getDouble(4);
                 cout << endl;
             }
         }
