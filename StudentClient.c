@@ -7,7 +7,7 @@
 
 int TCPecho(const char *host, const char *service);
 
-#define BUFSIZE 128
+#define BUFSIZE 1024
 
 /*------------------------------------------------------------------------
  * main - TCP client for ECHO service
@@ -76,14 +76,22 @@ int TCPecho(const char *host, const char *service) {
         bzero(buf, BUFSIZE);
 
         /* read it back */
-        n = read(s, buf, BUFSIZE);
-        if (n < 0)
-            errexit("socket read failed: %s\n", strerror(errno));
+        int sz;
+        while ((sz = read(s, buf, BUFSIZE))) {
+            if (sz < 0)
+                errexit("socket read failed: %s\n", strerror(errno));
+            else {
+                printf("%s", buf);
+                fflush(stdout);
+                bzero(buf, BUFSIZE);
+            }
+            if (sz < BUFSIZE)
+                break;
+        }
 
-        printf("Message from server: %s", buf);
         fflush(stdout);
 
-        printf("Student ID: ");
+        printf("Enter ID or Password (or END): ");
     }
 
     return 0;

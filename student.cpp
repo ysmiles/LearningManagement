@@ -5,10 +5,10 @@
 
 using namespace std;
 
-// istream &operator>>(istream &is, student &s) {
-//     is >> s.id >> s.gpa;
-//     return is;
-// }
+istream &operator>>(istream &is, student &s) {
+    is >> s.id >> s.gpa;
+    return is;
+}
 
 // istream &operator>>(istream &is, student &s) {
 //     is >> s.id >> s.password;
@@ -22,12 +22,12 @@ ostream &operator<<(ostream &os, const student &s) {
     return os;
 }
 
-ostream &operator<<(ostream &os, const student &s) {
-    os << fixed << setprecision(3);
-    os << setw(2) << s.id;
-    os << setw(14) << s.password;
-    return os;
-}
+// ostream &operator<<(ostream &os, const student &s) {
+//     os << fixed << setprecision(3);
+//     os << setw(2) << s.id;
+//     os << setw(14) << s.password;
+//     return os;
+// }
 
 bool operator<(const student &s1, const student &s2) {
     return s1.id < s2.id;

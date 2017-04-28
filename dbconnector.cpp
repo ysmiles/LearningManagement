@@ -12,7 +12,7 @@ dbconnector::dbconnector() {
         con = driver->connect("tcp://127.0.0.1:3306", "ys", "ysys");
         db = "studentdb";
         con->setSchema(db);
-        stmt = con->createStatement();
+        stmt = nullptr;
     } catch (sql::SQLException &e) {
         cout << "# ERR: " << e.what();
         cout << " (MySQL error code: " << e.getErrorCode();
@@ -22,8 +22,13 @@ dbconnector::dbconnector() {
 
 int dbconnector::exQuery(ostream &os, const string &query) {
     try {
+        if (stmt != nullptr)
+            delete stmt;
+        stmt = con->createStatement();
         res = stmt->executeQuery(query);
     } catch (sql::SQLException &e) {
+        if (e.getErrorCode() == 0)
+            return 0;
         os << "# ERR: " << e.what();
         os << " (MySQL error code: " << e.getErrorCode();
         os << ", SQLState: " << e.getSQLState() << " )" << endl;

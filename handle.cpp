@@ -28,7 +28,6 @@ int handleStudent(int fd) {
     bzero(buf, CMDSIZE);
     int sz;
     dbconnector dc;
-    string sqlcmd;
 
     while ((sz = read(fd, buf, CMDSIZE))) {
         if (sz < 0)
@@ -39,104 +38,91 @@ int handleStudent(int fd) {
 
         string buff = buf;
 
+        // clear the buffer
+        bzero(buf, CMDSIZE);
+
         if (buff == "END") {
             close(fd);
             return 0;
         }
+
+        string sqlcmd;
+        ostringstream ss; // output buffer
 
         //    decide if buff is number
         regex idreg("\\d+");
         if (!regex_match(buff, idreg)) {
             buff = "Wrong ID format\n";
         } else {
-            // TODO
-            // check passwords
-            sqlcmd = "SELECT Password students WHERE StudentID = ";
-            sqlcmd += buff;
+            string stuid = buff;
+            sqlcmd = "SELECT EXISTS (SELECT * FROM students WHERE "
+                     "StudentID = " +
+                     stuid + ")";
             if (dc.exQuery(ss, sqlcmd) == 0) {
                 auto *res = dc.getresult();
-                ss << setw(12) << "Student ID" << setw(12) << "Last Name"
-                   << setw(12) << "First Name" << setw(12) << "Grade" << endl;
-                while (res->next()) {
-                    // by column
-                    for (auto i = 1; i < 4; ++i)
-                        ss << setw(12) << res->getString(i);
-                    ss << fixed << setprecision(3) << setw(12)
-                       << res->getDouble(4);
-                    ss << endl;
-                }
-            }
-            sqlcmd = "SELECT * FROM students WHERE StudentID = ";
-            sqlcmd += cmd[1];
-            if (dc.exQuery(ss, sqlcmd) == 0) {
-                auto *res = dc.getresult();
-                ss << setw(12) << "Student ID" << setw(12) << "Last Name"
-                   << setw(12) << "First Name" << setw(12) << "Grade" << endl;
-                while (res->next()) {
-                    // by column
-                    for (auto i = 1; i < 4; ++i)
-                        ss << setw(12) << res->getString(i);
-                    ss << fixed << setprecision(3) << setw(12)
-                       << res->getDouble(4);
-                    ss << endl;
-                }
-            }
-        }
-
-        // AUTHENTCATION and send back gpa
-        else {
-            int id = stoi(buff);
-            double gpa = -1;
-            for (auto i = stu.begin(); i != stu.end(); ++i) {
-                if (id == i->id) {
-                    // if id found, break the search
-                    pass = i->password;
-                    if (pass.empty()) {
-                        // Let client enter at least 8 characters long
-                        password buff = "Setup Password:\n";
-                        write(fd, buff.c_str(), buff.size());
-                        // read passward
-                        read(fd, buf, CMDSIZE);
-
-                        // TODO
-                        strcpy(pass1, buf);
-                        string password(pass1);
-                        savepassinfo(stu);
-                    } else {
-                        // Let client enter at least 8 characters long
-                        password buff = "Enter Password:\n";
-                        write(fd, buff.c_str(), buff.size());
-                        // read passward
-                        read(fd, buf, CMDSIZE);
-
-                        // TODO
-                        strcpy(pass1, buf);
-                        string pass2(pass1);
-
-                        // Compare the passwords, if same
-                        // then ask for next command to execute.
-                        if (pass == pass2) {
-                            buff = "How can I help you?";
-                            write(fd, buff.c_str(), buff.size());
-                            read(fd, buf, CMDSIZE);
-                            gpa = i->gpa;
-                        } else {
-                            buff = "Unauthorised access";
-                            write(fd, buff.c_str(), buff.size());
-                        }
+                if (res->next()) {
+                    // 0 means not exist
+                    if (!res->getInt(1)) {
+                        ss << "ID not found. Try Again." << endl;
+                        buff = ss.str();
+                        if (write(fd, buff.c_str(), buff.size()) < 0)
+                            errexit("Sending failed: %s\n", strerror(errno));
+                        // go to next loop of while
+                        continue;
                     }
-                    break;
                 }
             }
-
+            // check passwords
+            string pwddb;
+            sqlcmd = "SELECT Password FROM students WHERE StudentID = ";
+            sqlcmd += stuid;
+            if (dc.exQuery(ss, sqlcmd) == 0) {
+                auto *res = dc.getresult();
+                if (res->next()) {
+                    // by column
+                    pwddb = res->getString(1);
+                }
+            }
+            // Let client enter password
+            buff = "Enter Password (default: 123456):\n";
             if (write(fd, buff.c_str(), buff.size()) < 0)
                 errexit("Sending failed: %s\n", strerror(errno));
 
-            // clear the buffer and goto next command
-            bzero(buf, CMDSIZE);
+            // read passward
+            if ((sz = read(fd, buf, CMDSIZE)) < 0)
+                errexit("Reading failed: %s\n", strerror(errno));
+
+            // just in case some wrong message
+            buf[sz - 1] = '\0';
+
+            string pwd = buf;
+
+            if (pwd == pwddb) {
+                sqlcmd = "SELECT * FROM students WHERE StudentID = ";
+                sqlcmd += stuid;
+                if (dc.exQuery(ss, sqlcmd) == 0) {
+                    auto *res = dc.getresult();
+                    ss << setw(12) << "Student ID" << setw(12) << "Last Name"
+                       << setw(12) << "First Name" << setw(12) << "Grade"
+                       << endl;
+                    while (res->next()) {
+                        // by column
+                        for (auto i = 1; i < 4; ++i)
+                            ss << setw(12) << res->getString(i);
+                        ss << fixed << setprecision(3) << setw(12)
+                           << res->getDouble(4);
+                        ss << endl;
+                    }
+                }
+            } else {
+                ss << "Wrong password." << endl;
+            }
         }
-        return 0;
+        buff = ss.str();
+        if (write(fd, buff.c_str(), buff.size()) < 0)
+            errexit("Sending failed: %s\n", strerror(errno));
     }
+    return 0;
 }
 
 int handleInstructor(int fd) {
@@ -158,7 +144,6 @@ int handleInstructor(int fd) {
 
         if (buff == "END") {
             close(fd);
-            saveInfo(stu);
             return 0;
         }
 
@@ -177,15 +162,24 @@ int handleInstructor(int fd) {
                          cmd[1] + ")";
                 if (dc.exQuery(ss, sqlcmd) == 0) {
                     auto *res = dc.getresult();
-                    // 0 means not exist
-                    if (res->getInt(1)) {
-                        ss << "ID already registered. Try Again." << endl;
-                        // go to next loop of while
-                        continue;
+                    if (res->next()) {
+                        // 0 means not exist
+                        if (res->getInt(1)) {
+                            ss << "ID already registered. Try Again." << endl;
+                            // go to next loop of while
+                            buff = ss.str();
+                            if (write(fd, buff.c_str(), buff.size()) < 0)
+                                errexit("Sending failed: %s\n",
+                                        strerror(errno));
+                            // go to next loop of while
+                            continue;
+                        }
                     }
                 }
-                sqlcmd = "INSERT INTO students VALUE(" + cmd[1] + ", '" +
-                         cmd[2] + "', '" + cmd[3] + "', " + cmd[4] + ")";
+                sqlcmd = "INSERT INTO students(StudentID, LastName, FirstName, "
+                         "Grade) VALUE(" +
+                         cmd[1] + ", '" + cmd[2] + "', '" + cmd[3] + "', " +
+                         cmd[4] + ")";
                 if (dc.exQuery(ss, sqlcmd) == 0) {
                     ss << "Register succeed" << endl;
                 }
@@ -197,11 +191,17 @@ int handleInstructor(int fd) {
                          cmd[1] + ")";
                 if (dc.exQuery(ss, sqlcmd) == 0) {
                     auto *res = dc.getresult();
-                    // 0 means not exist
-                    if (!res->getInt(1)) {
-                        ss << "ID not found. Try Again." << endl;
-                        // go to next loop of while
-                        continue;
+                    if (res->next()) {
+                        // 0 means not exist
+                        if (!res->getInt(1)) {
+                            ss << "ID not found. Try Again." << endl;
+                            buff = ss.str();
+                            if (write(fd, buff.c_str(), buff.size()) < 0)
+                                errexit("Sending failed: %s\n",
+                                        strerror(errno));
+                            // go to next loop of while
+                            continue;
+                        }
                     }
                 }
                 sqlcmd = "UPDATE students SET Grade =" + cmd[2] +
@@ -219,10 +219,17 @@ int handleInstructor(int fd) {
                 if (dc.exQuery(ss, sqlcmd) == 0) {
                     auto *res = dc.getresult();
                     // 0 means not exist
-                    if (!res->getInt(1)) {
-                        ss << "ID not found. Try Again." << endl;
-                        // go to next loop of while
-                        continue;
+                    if (res->next()) {
+                        if (!res->getInt(1)) {
+                            ss << "ID not found. Try Again." << endl;
+                            // go to next loop of while
+                            buff = ss.str();
+                            if (write(fd, buff.c_str(), buff.size()) < 0)
+                                errexit("Sending failed: %s\n",
+                                        strerror(errno));
+                            // go to next loop of while
+                            continue;
+                        }
                     }
                 }
                 if (cmd[0] == "list") {
@@ -290,7 +297,7 @@ int handleInstructor(int fd) {
                     }
                     sqlcmd = "SELECT * FROM students WHERE Grade = "
                              "(SELECT  MIN(Grade) FROM students)";
-                    ss << "Max grade student" << endl;
+                    ss << "Min grade student" << endl;
                     if (dc.exQuery(ss, sqlcmd) == 0) {
                         auto *res = dc.getresult();
                         ss << setw(12) << "Student ID" << setw(12)
@@ -318,23 +325,24 @@ int handleInstructor(int fd) {
                 } else if (cmd[0] == "help") {
                     ss << left;
                     ss << "Command examples: " << endl;
-                    ss << setw(25) << "list"
+                    ss << setw(40) << "list"
                        << "- list all infomation" << endl;
-                    ss << setw(25) << "list [id]"
+                    ss << setw(40) << "list [id]"
                        << "- show one student's grade" << endl;
-                    ss << setw(25) << "del [id]"
+                    ss << setw(40) << "del [id]"
                        << "- delete a record" << endl;
-                    ss << setw(25) << "stat"
+                    ss << setw(40) << "stat"
                        << "- show statistics information" << endl;
-                    ss << setw(25) << "register [id] [grade]"
+                    ss << setw(40)
+                       << "register [id] [last name] [first name] [grade]"
                        << "- add an id or change grade" << endl;
-                    ss << setw(25) << "change [id] [grade]"
+                    ss << setw(40) << "change [id] [grade]"
                        << "- change grade" << endl;
-                    ss << setw(25) << "END"
+                    ss << setw(40) << "END"
                        << "- disconnect with server" << endl;
                 }
-                buff = ss.str();
             }
+            buff = ss.str();
         }
 
         // Since buff has no content

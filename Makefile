@@ -12,7 +12,7 @@ SERVS = Server
 
 DEFS = -D_BSD_SOURCE
 CFLAGS = -W -pedantic -g ${DEFS} ${INCLUDE}
-CXXFLAGS = -std=c++11 -W -lmysqlcppconn ${DEFS} ${INCLUDE}
+CXXFLAGS = -std=c++11 -W ${DEFS} ${INCLUDE}
 #CXXFLAGS = -std=c++11 -W -pedantic -g ${DEFS} ${INCLUDE}
 
 HDR =
@@ -41,8 +41,11 @@ ${CLNTS}: ${COBJ} ${CXOBJ} ${GENOBJ}
 ${GENOBJCXX}: ${GENSRC}
 	${CXX} -o $@ ${CXXFLAGS} -c ${GENSRC}
 
+dbconnector.o: dbconnector.cpp
+	${CXX} -o $@ ${CXXFLAGS} -c dbconnector.cpp -lmysqlcppconn
+
 ${SERVS}: Server.o ${SXOBJ} ${GENOBJCXX} dbconnector.o
-	${CXX} -o $@ ${CXXFLAGS} $@.o ${SXOBJ} ${GENOBJCXX}
+	${CXX} -o $@ ${CXXFLAGS} $@.o ${SXOBJ} ${GENOBJCXX} dbconnector.o -lmysqlcppconn
 
 clients: ${CLNTS}
 servers: ${SERVS}
