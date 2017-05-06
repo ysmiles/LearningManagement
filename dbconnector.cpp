@@ -10,6 +10,9 @@ dbconnector::dbconnector() {
         /* Connect to the MySQL test database */
         driver = get_driver_instance();
         con = driver->connect("tcp://127.0.0.1:3306", "ys", "ysys");
+        // TODO
+        // Used for remote database test
+        // con = driver->connect("tcp://162.243.136.123:3306", "ys", "ys011822sy096");
         db = "studentdb";
         con->setSchema(db);
         stmt = nullptr;
