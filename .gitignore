@@ -29,3 +29,8 @@
 *.app
 
 .vscode
+
+# Runnables
+InstructorClient
+StudentClient
+Server
