@@ -70,6 +70,8 @@ int handleStudent(int fd) {
         if (!regex_match(buff, idreg)) {
             buff = "Wrong ID format\n";
         } else {
+            // can be modified by function findbystuid
+            // TODO
             string stuid = buff;
             sqlcmd = "SELECT EXISTS (SELECT * FROM students WHERE "
                      "StudentID = " +
@@ -407,4 +409,60 @@ int handleInstructor(int fd) {
     }
 
     return 0;
+}
+
+bool findbystuid(int id) {
+    string sqlcmd = "SELECT EXISTS (SELECT * FROM students WHERE "
+                    "StudentID = " +
+                    id + ")";
+    if (dc.exQuery(ss, sqlcmd) == 0) {
+        auto *res = dc.getresult();
+        if (res->next()) {
+            // 0 means not exist
+            return res->getInt(1);
+        }
+    }
+    // not found
+    return 0;
+}
+
+bool findbyinsid(int id) {
+    string sqlcmd = "SELECT EXISTS (SELECT * FROM instructors WHERE "
+                    "insid = " +
+                    id + ")";
+    if (dc.exQuery(ss, sqlcmd) == 0) {
+        auto *res = dc.getresult();
+        if (res->next()) {
+            // 0 means not exist
+            return res->getInt(1);
+        }
+    }
+    // not found
+    return 0;
+}
+
+bool sendmsg(string &buff, int fd) {
+    // to let client know if the message has been finished
+    // because client buffer is 1024
+    if (buff.size() % 1024 == 1023)
+        // add 2 chars
+        buff += " \n";
+    else
+        // add 1 new line character
+        buff += '\n';
+
+    // send message
+    // next time if it is too large, we can split the string before send
+    int outlen = buff.size();
+    if ((outlen = write(fd, buff.c_str(), outlen)) < 0)
+        errexit("Sending failed: %s\n", strerror(errno));
+
+    // might be splitted by system
+    int bufsizebefore = buff.size();
+    while (outlen != bufsizebefore) {
+        buff = buff.substr(outlen);
+        outlen = buff.size();
+        if ((outlen = write(fd, buff.c_str(), outlen)) < 0)
+            errexit("Sending failed: %s\n", strerror(errno));
+    }
 }
