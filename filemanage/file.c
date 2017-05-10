@@ -16,15 +16,6 @@ myres fileread(char *buf);
 extern int errno;
 int errexit(const char *format, ...);
 
-// engough for holding filename
-// for client
-char filenameC[64];
-FILE *fpC;
-// for server
-char filenameS[64];
-// globle size
-int sz;
-
 #define BUFSIZE 1024
 
 /*------------------------------------------------------------------------
@@ -32,6 +23,7 @@ int sz;
  *------------------------------------------------------------------------
  */
 int main(int argc, char *argv[]) {
+
     /* set up connection for remote procedure call  */
     handle = clnt_create(RMACHINE, RFILEPROG, RFILEVERS, "tcp");
     if (handle == 0) {
@@ -39,34 +31,24 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    // buffer for one line of text
-    char buf[BUFSIZE];
-    bzero(buf, BUFSIZE);
-    // used for size
-    int outchars;
+    char filename[128]; // engough for holding filename
+    FILE *fp;           // file handler
+    char buf[BUFSIZE];  // buffer for one line of text
+    int sz;             // used for size
+
+    memset(buf, 0, BUFSIZE);
 
     printf("Input file name: ");
-    while (fgets(buf, sizeof(buf), stdin)) {
-        // insure line null-terminated
-        buf[BUFSIZE - 1] = '\0';
+    while (fgets(filename, sizeof(filename), stdin)) {
+        // input abc, filename would be abc\n, sz would be 4
+        sz = strlen(filename);
+        filename[outchars - 1] = '\0'; // filename strlen would be 3
 
-        // now buf contains \n
-        outchars = strlen(buf);
-        strncpy(filenameC, buf, outchars);
+        sz = checkfilename(filename);
 
-        // after this filename does not contain \n
-        filenameC[outchars - 1] = '\0';
+        fp = fopen(filename, "w");
 
-        // filenameS does not have the postfix
-        strncpy(filenameS, filenameC, outchars);
-
-        sz = checkfilename(filenameS);
-        printf("Checkname result is (1 means existing) %d\n", sz);
-
-        strcat(filenameC, "_client");
-        fpC = fopen(filenameC, "w");
-
-        bzero(buf, BUFSIZE);
+        memset(buf, 0, BUFSIZE);
 
         puts("before fileread");
 
@@ -87,8 +69,8 @@ int main(int argc, char *argv[]) {
                 break;
             } else {
                 printf("get data %d bytes\n", sz);
-                fwrite(buf, sizeof(char), sz, fpC);
-                bzero(buf, BUFSIZE);
+                fwrite(buf, sizeof(char), sz, fp);
+                memset(buf, 0, BUFSIZE);
             }
 
             if (sz < BUFSIZE) {
@@ -96,21 +78,21 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        fclose(fpC);
+        fclose(fp);
 
         // open again and check size.
-        fpC = fopen(filenameC, "r");
+        fp = fopen(filename, "r");
 
-        fseek(fpC, 0, SEEK_END);
-        sz = ftell(fpC);
+        fseek(fp, 0, SEEK_END);
+        sz = ftell(fp);
 
         if (sz > 0) {
-            printf("%s has been successfully got from server.\n", filenameC);
+            printf("%s has been successfully got from server.\n", filename);
             printf("The size is %d bytes.\n", sz);
         } else {
-            if (remove(filenameC) != 0)
+            if (remove(filename) != 0)
                 printf("Error: unable to delete the file\n");
-            printf("Failed to get %s from server.\n", filenameC);
+            printf("Failed to get %s from server.\n", filename);
         }
 
         printf("Input file name: ");
