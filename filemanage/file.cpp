@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
                 bufres = fileread(filename);
                 sz = bufres.sz;
 
-                printf("get data %d bytes\n", sz);
+                // printf("get data %d bytes\n", sz);
                 fwrite(bufres.content, sizeof(char), sz, fp);
 
                 if (sz < BUFSIZE)

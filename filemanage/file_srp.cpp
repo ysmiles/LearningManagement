@@ -38,7 +38,7 @@ myres fileread(char *buf) {
         if ((s = fread(result, sizeof(char), BUFSIZE, fpS)) < BUFSIZE)
             fclose(fpS);
     }
-    printf("send data %d bytes\n", s);
+    // printf("send data %d bytes\n", s);
 
     myres res;
     res.sz = s;
