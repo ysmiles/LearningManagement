@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include "dbconnector.h"
 
 using std::ostream;
 using std::string;

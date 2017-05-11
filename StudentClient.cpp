@@ -3,81 +3,100 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <string>
+using std::string;
+
 #include "socketstuff.h"
 
-int Interact(const char *host, const char *service);
+int TCPecho(const char *host, const char *service);
 
 #define BUFSIZE 1024
 
 /*------------------------------------------------------------------------
- * main - TCP client for Instructor
+ * main - TCP client for ECHO service
  *------------------------------------------------------------------------
  */
 int main(int argc, char *argv[]) {
     // host to use if none supplied
-    char *host = "localhost";
+    string host = "localhost";
     // default service port
-    char *service = "8000";
+    string service = "8000";
 
     switch (argc) {
     case 1:
-        printf("Using default host: %s:%s\n", host, service);
+        printf("Using default host: %s:%s\n", host.c_str(), service.c_str());
         break;
     case 3:
         service = argv[2];
     /* FALL THROUGH */
     case 2:
         host = argv[1];
-        printf("Using host: %s:%s\n", host, service);
+        printf("Using host: %s:%s\n", host.c_str(), service.c_str());
         break;
     default:
         fprintf(stderr, "usage: Client [host] [port]\n");
         exit(1);
     }
 
-    // Interact with server
-    Interact(host, service);
+    TCPecho(host.c_str(), service.c_str());
 
     exit(0);
 }
 
 /*------------------------------------------------------------------------
- * Interact - send command to server and print out the message from server
+ * TCPecho - send input to ECHO service on specified host and print reply
  *------------------------------------------------------------------------
  */
-int Interact(const char *host, const char *service) {
+int TCPecho(const char *host, const char *service) {
+
     // buffer for one line of text
-    char buf[BUFSIZE];
-    bzero(buf, BUFSIZE);
+    char buf[BUFSIZE + 1];
     /* socket descriptor, read count*/
-    int sock, sz;
+    int s, n;
 
     /* characters sent and received */
-    int outchars;
+    int outchars, inchars;
 
-    sock = connectTCP(host, service);
+    s = connectTCP(host, service);
 
-    (void)write(sock, "INS", 4);
+    // first identify itself
+    (void)write(s, "STU", 4);
 
-    printf("Input command: ");
+    printf("Current general notification:\n");
+    // read the most recent notification
+    int sz;
+    bzero(buf, BUFSIZE);
+    while ((sz = read(s, buf, BUFSIZE))) {
+        if (sz < 0)
+            errexit("socket read failed: %s\n", strerror(errno));
+        else {
+            printf("%s", buf);
+            fflush(stdout);
+            bzero(buf, BUFSIZE);
+        }
+        if (sz < BUFSIZE)
+            break;
+    }
+
+    printf("Input: ");
     fflush(stdout);
     while (fgets(buf, sizeof(buf), stdin)) {
-
+        // insure line null-terminated
         outchars = strlen(buf);
         buf[outchars - 1] = '\0';
 
-        (void)write(sock, buf, outchars);
+        (void)write(s, buf, outchars);
 
         // close if input END
         if (strcmp(buf, "END") == 0) {
-            close(sock);
+            close(s);
             return 0;
         }
 
         bzero(buf, BUFSIZE);
 
         /* read it back */
-        while ((sz = read(sock, buf, BUFSIZE))) {
+        while ((sz = read(s, buf, BUFSIZE))) {
             if (sz < 0)
                 errexit("socket read failed: %s\n", strerror(errno));
             else {
@@ -89,11 +108,10 @@ int Interact(const char *host, const char *service) {
                 break;
         }
 
-        printf("Input command: ");
         fflush(stdout);
-    }
 
-    // here the socket has already been closed
+        printf("Enter ID or Password (or END): ");
+    }
 
     return 0;
 }

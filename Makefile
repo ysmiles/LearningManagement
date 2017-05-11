@@ -17,15 +17,13 @@ CXXFLAGS = -std=c++11 -W ${DEFS} ${INCLUDE}
 
 HDR =
 
-CSRC = InstructorClient.c StudentClient.c
 CXSRC = connectsock.c connectTCP.c
 COBJ = InstructorClient.o StudentClient.o
 CXOBJ = connectsock.o connectTCP.o
 
-GENSRC = errexit.c 
 GENOBJ = errexit.o
 #CPP version .o file
-GENOBJCXX = errexitcpp.o
+# GENOBJCXX = errexitcpp.o
 
 SSRC = Server.cpp
 SXSRC = handle.cpp student.cpp passivesock.cpp passiveTCP.cpp
@@ -36,7 +34,7 @@ PROGS = ${CLNTS} ${SERVS} ${OTHER}
 all: ${PROGS}
 
 ${CLNTS}: ${COBJ} ${CXOBJ} ${GENOBJ}
-	${CC} -o $@ ${CFLAGS} $@.o ${CXOBJ} ${GENOBJ}
+	${CXX} -o $@ ${CXXFLAGS} $@.o ${CXOBJ} ${GENOBJ}
 
 ${GENOBJCXX}: ${GENSRC}
 	${CXX} -o $@ ${CXXFLAGS} -c ${GENSRC}
@@ -44,8 +42,8 @@ ${GENOBJCXX}: ${GENSRC}
 dbconnector.o: dbconnector.cpp
 	${CXX} -o $@ ${CXXFLAGS} -c dbconnector.cpp -lmysqlcppconn
 
-${SERVS}: Server.o ${SXOBJ} ${GENOBJCXX} dbconnector.o
-	${CXX} -o $@ ${CXXFLAGS} $@.o ${SXOBJ} ${GENOBJCXX} dbconnector.o -lmysqlcppconn
+${SERVS}: Server.o ${SXOBJ} ${GENOBJ} dbconnector.o
+	${CXX} -o $@ ${CXXFLAGS} $@.o ${SXOBJ} ${GENOBJ} dbconnector.o -lmysqlcppconn
 
 clients: ${CLNTS}
 servers: ${SERVS}
