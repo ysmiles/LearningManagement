@@ -1,42 +1,29 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include "filemanage.h"
 
-#include "file.h"
-#include <rpc/rpc.h>
-#define RMACHINE "localhost" /* name of remote machine	*/
-CLIENT *handle;              /* handle for remote procedure	*/
-
-int checkfilename(char *fname);
-myres fileread(char *buf);
-
-#define BUFSIZE 1024
+CLIENT *handle; /* handle for remote procedure	*/
 
 // file receiver
-int freceiver(const vector<string> &fnames) {
+int freceiver(const vector<string> &fnames, bool choice) {
     /* set up connection for remote procedure call  */
-    handle = clnt_create(RMACHINE, RFILEPROG, RFILEVERS, "tcp");
+    if (choice)
+        handle = clnt_create(RMACHINE, RFILEPROGA, RFILEVERS, "tcp");
+    else
+        handle = clnt_create(RMACHINE, RFILEPROGB, RFILEVERS, "tcp");
+
     if (handle == 0) {
         printf("Could not contact remote program.\n");
         exit(1);
     }
 
-    FILE *fp;           // file handler
-    
-    char buf[BUFSIZE];  // buffer for one line of text
-    int sz;             // used for size
+    FILE *fp; // file handler
+    char filename[128];
 
-    memset(buf, 0, BUFSIZE);
+    int sz; // used for size
 
-    printf("Input file name: ");
-    while (fgets(filename, sizeof(filename), stdin)) {
-        // input abc, filename would be abc\n, sz would be 4
-        sz = strlen(filename);
-        filename[sz - 1] = '\0'; // filename strlen would be 3
-
+    for (auto fi : fnames) {
+        strncpy(filename, fi.c_str(), fi.size() + 1);
         // also set fpS at server
-        if (sz = checkfilename(filename)) {
+        if ((sz = checkfilename(filename))) {
             // file exist
             myres bufres;
 
@@ -57,13 +44,9 @@ int freceiver(const vector<string> &fnames) {
             fp = fopen(filename, "r");
             fseek(fp, 0, SEEK_END);
             sz = ftell(fp);
-            printf("%s has been successfully got from server.\n", filename);
-            printf("The size is %d bytes.\n", sz);
+            printf("%s (%d bytes) downloaded\n", filename, sz);
         } else
             printf("failed to get file %s\n", filename);
-
-        printf("Input file name: ");
-        fflush(stdout);
     }
 
     return 0;

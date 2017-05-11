@@ -23,7 +23,11 @@ struct myres {
 };
 typedef struct myres myres;
 
-#define RFILEPROG 0x30090949
+// download files from server
+#define RFILEPROGA 0x30090949
+// upload files to server
+#define RFILEPROGB 0x30090950
+
 #define RFILEVERS 1
 
 #if defined(__STDC__) || defined(__cplusplus)

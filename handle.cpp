@@ -411,7 +411,7 @@ int handleInstructor(int fd) {
     return 0;
 }
 
-bool findbystuid(int id) {
+bool findbystuid(const string &id, dbconnector &dc, ostream &ss) {
     string sqlcmd = "SELECT EXISTS (SELECT * FROM students WHERE "
                     "StudentID = " +
                     id + ")";
@@ -426,7 +426,7 @@ bool findbystuid(int id) {
     return 0;
 }
 
-bool findbyinsid(int id) {
+bool findbyinsid(const string &id, dbconnector &dc, ostream &ss) {
     string sqlcmd = "SELECT EXISTS (SELECT * FROM instructors WHERE "
                     "insid = " +
                     id + ")";
@@ -441,7 +441,7 @@ bool findbyinsid(int id) {
     return 0;
 }
 
-bool sendmsg(string &buff, int fd) {
+bool sendmessage(string &buff, int fd) {
     // to let client know if the message has been finished
     // because client buffer is 1024
     if (buff.size() % 1024 == 1023)
@@ -465,4 +465,6 @@ bool sendmsg(string &buff, int fd) {
         if ((outlen = write(fd, buff.c_str(), outlen)) < 0)
             errexit("Sending failed: %s\n", strerror(errno));
     }
+    // succeed
+    return 1;
 }

@@ -1,12 +1,18 @@
 #ifndef HANDLE_H
 #define HANDLE_H
 
+#include <iostream>
+#include <string>
+
+using std::ostream;
+using std::string;
+
 int handleStudent(int fd);
 int handleInstructor(int fd);
 
-bool sendmsg(string &buff, int fd);
+bool sendmessage(string &buff, int fd);
 
-bool findbystuid(int id);
-bool findbyinsid(int id);
+bool findbystuid(const string &id, dbconnector &dc, ostream &os);
+bool findbyinsid(const string &id, dbconnector &dc, ostream &os);
 
 #endif

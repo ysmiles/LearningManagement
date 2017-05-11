@@ -11,7 +11,7 @@ static FILE *fpS;
 
 #define BUFSIZE 1024
 
-int checkfilename(char *fname) {
+int checkfilename_s(char *fname) {
     printf("File %s", fname);
     if (access(fname, R_OK) != -1) {
         puts(" exits");
@@ -19,18 +19,18 @@ int checkfilename(char *fname) {
         return 1;
     } else {
         puts(" does not exist");
-        fpS = NULL;
+        fpS = nullptr;
         return 0;
     }
 }
 
-myres fileread(char *buf) {
+myres fileread_s(char *buf) {
     // char *result = (char *)malloc(BUFSIZE);
     char result[BUFSIZE];
     memset(result, '\0', BUFSIZE);
     int s;
     // check if the file exist locally
-    if (fpS == NULL) {
+    if (fpS == nullptr) {
         printf("(Serverside) Wrong file name.\n");
         sprintf(result, "Wrong file name");
         s = 16;
