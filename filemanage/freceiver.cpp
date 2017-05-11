@@ -13,12 +13,8 @@ myres fileread(char *buf);
 
 #define BUFSIZE 1024
 
-/*------------------------------------------------------------------------
- * main - for FILE service
- *------------------------------------------------------------------------
- */
-int main(int argc, char *argv[]) {
-
+// file receiver
+int freceiver(const vector<string> &fnames) {
     /* set up connection for remote procedure call  */
     handle = clnt_create(RMACHINE, RFILEPROG, RFILEVERS, "tcp");
     if (handle == 0) {
@@ -26,8 +22,8 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    char filename[128]; // engough for holding filename
     FILE *fp;           // file handler
+    
     char buf[BUFSIZE];  // buffer for one line of text
     int sz;             // used for size
 
@@ -43,8 +39,6 @@ int main(int argc, char *argv[]) {
         if (sz = checkfilename(filename)) {
             // file exist
             myres bufres;
-
-            strcat(filename, "_copy");
 
             fp = fopen(filename, "w");
             while (1) {
