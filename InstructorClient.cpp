@@ -7,6 +7,7 @@
 using std::string;
 
 #include "socketstuff.h"
+#include "filemanage/filemanage.h"
 
 int Interact(const char *host, const char *service);
 
@@ -38,6 +39,12 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
+    // Open a file sender
+    if (fork() == 0) {
+        // child
+        return fsender(0);
+    }
+
     // Interact with server
     Interact(host.c_str(), service.c_str());
 
@@ -62,7 +69,7 @@ int Interact(const char *host, const char *service) {
 
     (void)write(sock, "INS", 4);
 
-    printf("Input command: ");
+    printf("Input: ");
     fflush(stdout);
     while (fgets(buf, sizeof(buf), stdin)) {
 
@@ -92,7 +99,7 @@ int Interact(const char *host, const char *service) {
                 break;
         }
 
-        printf("Input command: ");
+        printf("Input: ");
         fflush(stdout);
     }
 

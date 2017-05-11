@@ -3,8 +3,18 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <algorithm>
+#include <iomanip>
+#include <iostream>
+#include <iterator>
+#include <regex>
+#include <sstream>
 #include <string>
-using std::string;
+#include <vector>
+
+using namespace std;
+
+#include "filemanage/filemanage.h"
 
 #include "socketstuff.h"
 
@@ -62,21 +72,10 @@ int TCPecho(const char *host, const char *service) {
     // first identify itself
     (void)write(s, "STU", 4);
 
-    printf("Current general notification:\n");
-    // read the most recent notification
     int sz;
-    bzero(buf, BUFSIZE);
-    while ((sz = read(s, buf, BUFSIZE))) {
-        if (sz < 0)
-            errexit("socket read failed: %s\n", strerror(errno));
-        else {
-            printf("%s", buf);
-            fflush(stdout);
-            bzero(buf, BUFSIZE);
-        }
-        if (sz < BUFSIZE)
-            break;
-    }
+
+    // first read
+    puts("Enter ID");
 
     printf("Input: ");
     fflush(stdout);
@@ -93,6 +92,10 @@ int TCPecho(const char *host, const char *service) {
             return 0;
         }
 
+        string buff = buf;
+        // split the command
+        istringstream iss(buff);
+
         bzero(buf, BUFSIZE);
 
         /* read it back */
@@ -102,6 +105,14 @@ int TCPecho(const char *host, const char *service) {
             else {
                 printf("%s", buf);
                 fflush(stdout);
+                buf[sz - 1] = '\0';
+                if (strcmp(buf, "allowed") == 0) {
+                    vector<string> cmd{istream_iterator<string>(iss), {}};
+                    if (cmd.at(0) == "download") {
+                        vector<string> files(cmd.begin() + 1, cmd.end());
+                        freceiver(files, 1);
+                    }
+                }
                 bzero(buf, BUFSIZE);
             }
             if (sz < BUFSIZE)
@@ -110,7 +121,8 @@ int TCPecho(const char *host, const char *service) {
 
         fflush(stdout);
 
-        printf("Enter ID or Password (or END): ");
+        printf("Input: ");
+        fflush(stdout);
     }
 
     return 0;

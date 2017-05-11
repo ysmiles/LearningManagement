@@ -43,7 +43,7 @@ myres fileread_s(char *buf) {
     myres res;
     res.sz = s;
     res.content = result;
-    printf("\n%d bytes to be sent by RPC", sz);
+    printf("\n%d bytes to be sent by RPC\n", s);
 
     return res;
 }

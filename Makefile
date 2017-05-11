@@ -1,9 +1,11 @@
-#
-# Internetworking with TCP/IP, Volume III example code Makefile
-#
-#	David L Stevens, Internetworking Research Group at Purdue
-#	Tue Sep 17 19:40:42 EST 1991
-#
+# FILES = Foo.cpp Bar.cpp
+# SOURCES = $(FILES:%.cpp=$(SRC_PATH)/%.cpp)
+FCOBJ = freceiver.o file_clnt.o file_cif.o
+FSOBJ = fsender.o file_sif.o file_srp.o
+FAOBJ = ${FCOBJ} ${FSOBJ} file_xdr.o
+FPATH = filemanage
+PATHFAOBJ = $(FAOBJ:%.o=$(FPATH)/%.o)
+
 
 INCLUDE =
 
@@ -33,17 +35,14 @@ PROGS = ${CLNTS} ${SERVS} ${OTHER}
 
 all: ${PROGS}
 
-${CLNTS}: ${COBJ} ${CXOBJ} ${GENOBJ}
-	${CXX} -o $@ ${CXXFLAGS} $@.o ${CXOBJ} ${GENOBJ}
-
-${GENOBJCXX}: ${GENSRC}
-	${CXX} -o $@ ${CXXFLAGS} -c ${GENSRC}
+${CLNTS}: ${COBJ} ${CXOBJ} ${GENOBJ} ${PATHFAOBJ}
+	${CXX} -o $@ ${CXXFLAGS} $@.o ${CXOBJ} ${GENOBJ} ${PATHFAOBJ}
 
 dbconnector.o: dbconnector.cpp
 	${CXX} -o $@ ${CXXFLAGS} -c dbconnector.cpp -lmysqlcppconn
 
-${SERVS}: Server.o ${SXOBJ} ${GENOBJ} dbconnector.o
-	${CXX} -o $@ ${CXXFLAGS} $@.o ${SXOBJ} ${GENOBJ} dbconnector.o -lmysqlcppconn
+${SERVS}: Server.o ${SXOBJ} ${GENOBJ} dbconnector.o ${PATHFAOBJ}
+	${CXX} -o $@ ${CXXFLAGS} $@.o ${SXOBJ} ${GENOBJ} dbconnector.o ${PATHFAOBJ} -lmysqlcppconn
 
 clients: ${CLNTS}
 servers: ${SERVS}
