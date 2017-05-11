@@ -44,7 +44,7 @@ int freceiver(const vector<string> &fnames, bool choice) {
             fp = fopen(filename, "r");
             fseek(fp, 0, SEEK_END);
             sz = ftell(fp);
-            printf("%s (%d bytes) downloaded\n", filename, sz);
+            printf("%s (%d bytes) downloaded through RPC\n", filename, sz);
         } else
             printf("failed to get file %s\n", filename);
     }

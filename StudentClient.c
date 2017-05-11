@@ -59,7 +59,7 @@ int TCPecho(const char *host, const char *service) {
     // first identify itself
     (void)write(s, "STU", 4);
 
-    printf("Current notification:\n");
+    printf("Current general notification:\n");
     // read the most recent notification
     int sz;
     bzero(buf, BUFSIZE);
@@ -75,7 +75,8 @@ int TCPecho(const char *host, const char *service) {
             break;
     }
 
-    printf("Student ID: ");
+    printf("Input: ");
+    fflush(stdout);
     while (fgets(buf, sizeof(buf), stdin)) {
         // insure line null-terminated
         outchars = strlen(buf);

@@ -13,8 +13,8 @@ static FILE *fpS;
 
 int checkfilename_s(char *fname) {
     printf("File %s", fname);
+    fflush(stdout);
     if (access(fname, R_OK) != -1) {
-        puts(" exits");
         fpS = fopen(fname, "r");
         return 1;
     } else {
@@ -43,5 +43,7 @@ myres fileread_s(char *buf) {
     myres res;
     res.sz = s;
     res.content = result;
+    printf("\n%d bytes to be sent by RPC", sz);
+
     return res;
 }
