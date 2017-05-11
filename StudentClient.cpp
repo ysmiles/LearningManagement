@@ -15,7 +15,7 @@
 using namespace std;
 
 #include "filemanage/filemanage.h"
-
+#include "secure.h"
 #include "socketstuff.h"
 
 int TCPecho(const char *host, const char *service);
@@ -74,6 +74,9 @@ int TCPecho(const char *host, const char *service) {
 
     int sz;
 
+    // is password
+    bool ispwd = 0;
+
     // first read
     puts("Enter ID");
 
@@ -84,17 +87,19 @@ int TCPecho(const char *host, const char *service) {
         outchars = strlen(buf);
         buf[outchars - 1] = '\0';
 
-        (void)write(s, buf, outchars);
+        string buff = buf;
+        if (ispwd) {
+            string encrypted = encry(buff);
+            (void)write(s, encrypted.c_str(), encrypted.size());
+            ispwd = 0;
+        } else
+            (void)write(s, buf, outchars);
 
         // close if input END
         if (strcmp(buf, "END") == 0) {
             close(s);
             return 0;
         }
-
-        string buff = buf;
-        // split the command
-        istringstream iss(buff);
 
         bzero(buf, BUFSIZE);
 
@@ -107,12 +112,18 @@ int TCPecho(const char *host, const char *service) {
                 fflush(stdout);
                 buf[sz - 1] = '\0';
                 if (strcmp(buf, "allowed") == 0) {
+                    // split the command
+                    istringstream iss(buff);
                     vector<string> cmd{istream_iterator<string>(iss), {}};
                     if (cmd.at(0) == "download") {
                         vector<string> files(cmd.begin() + 1, cmd.end());
                         freceiver(files, 1);
                     }
+                } else if (strcmp(buf, "Enter Password (default: 123456):") ==
+                           0) {
+                    ispwd = 1;
                 }
+
                 bzero(buf, BUFSIZE);
             }
             if (sz < BUFSIZE)

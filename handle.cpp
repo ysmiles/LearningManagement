@@ -10,6 +10,7 @@
 #include "dbconnector.h"
 #include "filemanage/filemanage.h"
 #include "handle.h"
+#include "secure.h"
 #include "socketstuff.h"
 #include "student.h"
 
@@ -102,9 +103,14 @@ int handleStudent(int fd) {
                 errexit("Reading failed: %s\n", strerror(errno));
 
             // just in case some wrong message
-            buf[sz - 1] = '\0';
+            // buf[sz - 1] = '\0';
 
-            string pwd = buf;
+            string pwd;
+            for (auto i = 0; i < sz; ++i) {
+                pwd += buf[i];
+            }
+
+            pwd = dencry(pwd);
 
             if (pwd == pwddb) {
                 sqlcmd = "SELECT * FROM notifications WHERE Time = "

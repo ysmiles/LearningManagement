@@ -35,14 +35,14 @@ PROGS = ${CLNTS} ${SERVS} ${OTHER}
 
 all: ${PROGS}
 
-${CLNTS}: ${COBJ} ${CXOBJ} ${GENOBJ} ${PATHFAOBJ}
-	${CXX} -o $@ ${CXXFLAGS} $@.o ${CXOBJ} ${GENOBJ} ${PATHFAOBJ}
+${CLNTS}: ${COBJ} ${CXOBJ} ${GENOBJ} ${PATHFAOBJ} secure.o
+	${CXX} -o $@ ${CXXFLAGS} $@.o ${CXOBJ} ${GENOBJ} ${PATHFAOBJ} secure.o -lcrypto
 
 dbconnector.o: dbconnector.cpp
 	${CXX} -o $@ ${CXXFLAGS} -c dbconnector.cpp -lmysqlcppconn
 
-${SERVS}: Server.o ${SXOBJ} ${GENOBJ} dbconnector.o ${PATHFAOBJ}
-	${CXX} -o $@ ${CXXFLAGS} $@.o ${SXOBJ} ${GENOBJ} dbconnector.o ${PATHFAOBJ} -lmysqlcppconn
+${SERVS}: Server.o ${SXOBJ} ${GENOBJ} dbconnector.o ${PATHFAOBJ} secure.o
+	${CXX} -o $@ ${CXXFLAGS} $@.o ${SXOBJ} ${GENOBJ} dbconnector.o ${PATHFAOBJ} secure.o -lcrypto -lmysqlcppconn
 
 clients: ${CLNTS}
 servers: ${SERVS}
