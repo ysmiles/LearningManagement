@@ -478,8 +478,9 @@ int handleInstructor(int fd) {
                         }
                     }
                 } else if (cmd[0] == "stat") {
-                    sqlcmd = "SELECT StudentID, Lastname, Firstname, " + Grade +
-                             " = (SELECT  MAX(" + Grade + ") FROM students) FROM students";
+                    sqlcmd = "SELECT StudentID, LastName, FirstName, " + Grade +
+                             " FROM students WHERE " + Grade +
+                             " = (SELECT  MAX(" + Grade + ") FROM students)";
                     ss << "Max grade student" << endl;
                     if (dc.exQuery(ss, sqlcmd) == 0) {
                         auto *res = dc.getresult();
@@ -495,8 +496,9 @@ int handleInstructor(int fd) {
                             ss << endl;
                         }
                     }
-                    sqlcmd = "SELECT StudentID, Lastname, Firstname, " + Grade +
-                             " = (SELECT  MIN(" + Grade + ") FROM students) FROM students";
+                    sqlcmd = "SELECT StudentID, LastName, FirstName, " + Grade +
+                             " FROM students WHERE " + Grade +
+                             " = (SELECT  MIN(" + Grade + ") FROM students)";
                     ss << "Min grade student" << endl;
                     if (dc.exQuery(ss, sqlcmd) == 0) {
                         auto *res = dc.getresult();
